@@ -4,154 +4,94 @@ export default function Game() {
       <canvas id="gameCanvas" className="absolute top-0 left-0 w-full h-full"></canvas>
       <div className="absolute top-0 left-0 w-full h-full bg-opacity-30 bg-gray-900 animate-flicker"></div>
       <div className="text-red-500 text-lg sm:text-xl md:text-2xl font-bold text-center z-10">Welcome to the Haunted Woods</div>
-      <audio autoPlay loop>
+      <audio id="backgroundMusic" autoPlay loop>
         <source src="/sounds/horror-background.mp3" type="audio/mpeg" />
       </audio>
+      <audio id="schoolHallMusic">
+        <source src="/sounds/eery-school-hall.mp3" type="audio/mpeg" />
+      </audio>
+      <audio id="screechingSound">
+        <source src="/sounds/screeching.mp3" type="audio/mpeg" />
+      </audio>
+      <div id="joystick-container" className="absolute bottom-10 left-10 w-24 h-24 bg-gray-700 rounded-full opacity-70 flex items-center justify-center">
+        <div id="joystick" className="w-12 h-12 bg-gray-500 rounded-full"></div>
+      </div>
       <script>
         {`const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        
-        class Player {
-          constructor() {
-            this.x = canvas.width / 2;
-            this.y = canvas.height - 50;
-            this.width = 20;
-            this.height = 40;
-          }
-          draw() {
-            ctx.fillStyle = 'red';
-            ctx.fillRect(this.x, this.y, this.width, this.height);
-          }
+        function resizeCanvas() {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
         }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
         
-        class Tree {
-          constructor(x, y) {
-            this.x = x;
-            this.y = y;
-            this.width = 30;
-            this.height = 60;
-          }
-          draw() {
-            ctx.fillStyle = 'darkgreen';
-            ctx.fillRect(this.x, this.y, this.width, this.height);
-          }
-        }
+        const characters = {
+          main: { color: 'white', x: 50, y: 50 },
+          alex: { color: 'gray', x: 100, y: 50 },
+          james: { color: 'orange', x: 150, y: 50 },
+          chase: { color: 'tan', x: 200, y: 50 },
+          monster: { color: 'black', x: 300, y: 50, eyeColor: 'red' },
+          cloakedMan: { color: 'black', x: 350, y: 50, eyeColor: 'blue' }
+        };
         
-        class Arrow {
-          constructor() {
-            this.x = 50;
-            this.y = canvas.height / 2;
-            this.width = 40;
-            this.height = 20;
-          }
-          draw() {
-            ctx.fillStyle = 'yellow';
-            ctx.beginPath();
-            ctx.moveTo(this.x, this.y);
-            ctx.lineTo(this.x + this.width, this.y - this.height / 2);
-            ctx.lineTo(this.x + this.width, this.y + this.height / 2);
-            ctx.closePath();
-            ctx.fill();
-          }
-        }
-        
-        class Bus {
-          constructor() {
-            this.x = 20;
-            this.y = canvas.height / 2 - 30;
-            this.width = 80;
-            this.height = 40;
-          }
-          draw() {
-            ctx.fillStyle = 'yellow';
-            ctx.fillRect(this.x, this.y, this.width, this.height);
-          }
-        }
-        
-        const player = new Player();
-        const trees = [];
-        for(let i = 0; i < 10; i++) {
-          trees.push(new Tree(Math.random() * canvas.width, Math.random() * canvas.height));
-        }
-        const arrow = new Arrow();
-        const bus = new Bus();
-        
-        let dialogueIndex = 0;
-        const dialogues = [
-          "You and your friends were on a trip to a mysterious place when suddenly a strange door appeared before you.",
-          "As you stepped closer, it sucked everyone in and slammed shut behind you.",
-          "Now, you find yourself in a dark, eerie forest.",
-          "A shadowy figure in a cloak appears before you...",
-          "??? : You shouldn't have come here..."
+        const bathroomStalls = [
+          { x: 50, y: 200, width: 30, height: 50, color: 'green' },
+          { x: 100, y: 200, width: 30, height: 50, color: 'green' },
+          { x: 150, y: 200, width: 30, height: 50, color: 'green' },
+          { x: 200, y: 200, width: 30, height: 50, color: 'green' }
         ];
         
-        function showDialogue() {
-          const dialogueBox = document.getElementById('dialogueBox');
-          if (!dialogueBox) {
-            const box = document.createElement('div');
-            box.id = 'dialogueBox';
-            box.style.position = 'absolute';
-            box.style.bottom = '20px';
-            box.style.left = '50%';
-            box.style.transform = 'translateX(-50%)';
-            box.style.width = '80%';
-            box.style.padding = '10px';
-            box.style.background = 'rgba(0, 0, 0, 0.8)';
-            box.style.color = 'white';
-            box.style.border = '2px solid white';
-            box.style.fontFamily = 'monospace';
-            box.style.fontSize = '16px';
-            box.style.textAlign = 'center';
-            box.style.cursor = 'pointer';
-            box.innerText = dialogues[dialogueIndex];
-            box.onclick = () => {
-              dialogueIndex++;
-              if (dialogueIndex < dialogues.length) {
-                box.innerText = dialogues[dialogueIndex];
-              } else {
-                box.remove();
-                showArrowAndBus();
-              }
-            };
-            document.body.appendChild(box);
-          }
-        }
+        const stallPoles = [
+          { x: 65, y: 200, width: 5, height: 50, color: 'white' },
+          { x: 115, y: 200, width: 5, height: 50, color: 'white' },
+          { x: 165, y: 200, width: 5, height: 50, color: 'white' }
+        ];
         
-        function showArrowAndBus() {
-          function animateArrowAndBus() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            player.draw();
-            trees.forEach(tree => tree.draw());
-            arrow.draw();
-            bus.draw();
-            requestAnimationFrame(animateArrowAndBus);
-          }
-          animateArrowAndBus();
-
-          const interactButton = document.createElement('button');
-          interactButton.innerText = 'Interact';
-          interactButton.style.position = 'absolute';
-          interactButton.style.bottom = '50px';
-          interactButton.style.left = '50%';
-          interactButton.style.transform = 'translateX(-50%)';
-          interactButton.style.padding = '10px 20px';
-          interactButton.style.background = 'yellow';
-          interactButton.style.border = 'none';
-          interactButton.style.fontSize = '16px';
-          interactButton.style.cursor = 'pointer';
-          interactButton.onclick = () => {
-            alert('Your friends are free! They describe the figure as having red eyes...');
-            interactButton.remove();
-          };
-          document.body.appendChild(interactButton);
-        }
+        const bloodSplatter = [
+          { x: 80, y: 220, width: 10, height: 5, color: 'red' },
+          { x: 130, y: 215, width: 12, height: 6, color: 'darkred' },
+          { x: 180, y: 225, width: 14, height: 7, color: 'crimson' }
+        ];
         
-        window.onload = () => {
-          showDialogue();
-        };`}
+        const scratches = [
+          { x: 90, y: 210, width: 15, height: 2, color: 'black' },
+          { x: 140, y: 205, width: 18, height: 2, color: 'black' },
+          { x: 190, y: 215, width: 20, height: 2, color: 'black' }
+        ];
+        
+        function drawScene() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          bathroomStalls.forEach(stall => {
+            ctx.fillStyle = stall.color;
+            ctx.fillRect(stall.x, stall.y, stall.width, stall.height);
+          });
+          stallPoles.forEach(pole => {
+            ctx.fillStyle = pole.color;
+            ctx.fillRect(pole.x, pole.y, pole.width, pole.height);
+          });
+          bloodSplatter.forEach(blood => {
+            ctx.fillStyle = blood.color;
+            ctx.fillRect(blood.x, blood.y, blood.width, blood.height);
+          });
+          scratches.forEach(scratch => {
+            ctx.fillStyle = scratch.color;
+            ctx.fillRect(scratch.x, scratch.y, scratch.width, scratch.height);
+          });
+          Object.values(characters).forEach(char => {
+            ctx.fillStyle = char.color;
+            ctx.fillRect(char.x, char.y, 20, 20);
+            if (char.eyeColor) {
+              ctx.fillStyle = char.eyeColor;
+              ctx.fillRect(char.x + 5, char.y + 5, 3, 3);
+              ctx.fillRect(char.x + 12, char.y + 5, 3, 3);
+            }
+          });
+        }
+        setInterval(drawScene, 100);
+      `}
       </script>
     </div>
   );
 }
+
