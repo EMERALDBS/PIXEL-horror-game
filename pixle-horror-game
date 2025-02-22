@@ -1,0 +1,157 @@
+export default function Game() {
+  return (
+    <div className="game-container w-screen h-screen bg-black flex items-center justify-center p-4 sm:p-8 md:p-12 relative overflow-hidden">
+      <canvas id="gameCanvas" className="absolute top-0 left-0 w-full h-full"></canvas>
+      <div className="absolute top-0 left-0 w-full h-full bg-opacity-30 bg-gray-900 animate-flicker"></div>
+      <div className="text-red-500 text-lg sm:text-xl md:text-2xl font-bold text-center z-10">Welcome to the Haunted Woods</div>
+      <audio autoPlay loop>
+        <source src="/sounds/horror-background.mp3" type="audio/mpeg" />
+      </audio>
+      <script>
+        {`const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        class Player {
+          constructor() {
+            this.x = canvas.width / 2;
+            this.y = canvas.height - 50;
+            this.width = 20;
+            this.height = 40;
+          }
+          draw() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+          }
+        }
+        
+        class Tree {
+          constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.width = 30;
+            this.height = 60;
+          }
+          draw() {
+            ctx.fillStyle = 'darkgreen';
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+          }
+        }
+        
+        class Arrow {
+          constructor() {
+            this.x = 50;
+            this.y = canvas.height / 2;
+            this.width = 40;
+            this.height = 20;
+          }
+          draw() {
+            ctx.fillStyle = 'yellow';
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.x + this.width, this.y - this.height / 2);
+            ctx.lineTo(this.x + this.width, this.y + this.height / 2);
+            ctx.closePath();
+            ctx.fill();
+          }
+        }
+        
+        class Bus {
+          constructor() {
+            this.x = 20;
+            this.y = canvas.height / 2 - 30;
+            this.width = 80;
+            this.height = 40;
+          }
+          draw() {
+            ctx.fillStyle = 'yellow';
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+          }
+        }
+        
+        const player = new Player();
+        const trees = [];
+        for(let i = 0; i < 10; i++) {
+          trees.push(new Tree(Math.random() * canvas.width, Math.random() * canvas.height));
+        }
+        const arrow = new Arrow();
+        const bus = new Bus();
+        
+        let dialogueIndex = 0;
+        const dialogues = [
+          "You and your friends were on a trip to a mysterious place when suddenly a strange door appeared before you.",
+          "As you stepped closer, it sucked everyone in and slammed shut behind you.",
+          "Now, you find yourself in a dark, eerie forest.",
+          "A shadowy figure in a cloak appears before you...",
+          "??? : You shouldn't have come here..."
+        ];
+        
+        function showDialogue() {
+          const dialogueBox = document.getElementById('dialogueBox');
+          if (!dialogueBox) {
+            const box = document.createElement('div');
+            box.id = 'dialogueBox';
+            box.style.position = 'absolute';
+            box.style.bottom = '20px';
+            box.style.left = '50%';
+            box.style.transform = 'translateX(-50%)';
+            box.style.width = '80%';
+            box.style.padding = '10px';
+            box.style.background = 'rgba(0, 0, 0, 0.8)';
+            box.style.color = 'white';
+            box.style.border = '2px solid white';
+            box.style.fontFamily = 'monospace';
+            box.style.fontSize = '16px';
+            box.style.textAlign = 'center';
+            box.style.cursor = 'pointer';
+            box.innerText = dialogues[dialogueIndex];
+            box.onclick = () => {
+              dialogueIndex++;
+              if (dialogueIndex < dialogues.length) {
+                box.innerText = dialogues[dialogueIndex];
+              } else {
+                box.remove();
+                showArrowAndBus();
+              }
+            };
+            document.body.appendChild(box);
+          }
+        }
+        
+        function showArrowAndBus() {
+          function animateArrowAndBus() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            player.draw();
+            trees.forEach(tree => tree.draw());
+            arrow.draw();
+            bus.draw();
+            requestAnimationFrame(animateArrowAndBus);
+          }
+          animateArrowAndBus();
+
+          const interactButton = document.createElement('button');
+          interactButton.innerText = 'Interact';
+          interactButton.style.position = 'absolute';
+          interactButton.style.bottom = '50px';
+          interactButton.style.left = '50%';
+          interactButton.style.transform = 'translateX(-50%)';
+          interactButton.style.padding = '10px 20px';
+          interactButton.style.background = 'yellow';
+          interactButton.style.border = 'none';
+          interactButton.style.fontSize = '16px';
+          interactButton.style.cursor = 'pointer';
+          interactButton.onclick = () => {
+            alert('Your friends are free! They describe the figure as having red eyes...');
+            interactButton.remove();
+          };
+          document.body.appendChild(interactButton);
+        }
+        
+        window.onload = () => {
+          showDialogue();
+        };`}
+      </script>
+    </div>
+  );
+}
